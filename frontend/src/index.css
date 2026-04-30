@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@plugin "daisyui";
+
+/* ─── Theme-aware gradient background ─────────────────────────────────── */
+.bg-gradient-main {
+  background: radial-gradient(125% 125% at 50% 10%, oklch(0.97 0.01 260) 40%, oklch(0.65 0.18 280) 100%);
+  transition: background 0.3s ease;
+}
+
+[data-theme="dark"] .bg-gradient-main {
+  background: radial-gradient(125% 125% at 50% 10%, oklch(0.18 0.02 260) 40%, oklch(0.25 0.12 280) 100%);
+}
+
+/* ─── Rate limit card — matches background gradient tones ─────────────── */
+.rate-limit-card {
+  background: oklch(0.92 0.04 270);
+  color: oklch(0.25 0.05 270);
+}
+
+[data-theme="dark"] .rate-limit-card {
+  background: oklch(0.2 0.06 280);
+  color: oklch(0.9 0.02 270);
+}
+
+/* ─── Note card top accent border ─────────────────────────────────────── */
+.note-card-accent {
+  border-top: 3px solid oklch(0.55 0.2 280);
+}
+
+[data-theme="dark"] .note-card-accent {
+  border-top: 3px solid oklch(0.65 0.18 280);
+}
+
+/* ─── Smooth sidebar drawer animation ─────────────────────────────────── */
+.drawer-side {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drawer-side > .drawer-overlay {
+  transition: opacity 0.3s ease;
+}
+
+/* ─── Prevent layout shift when scrollbar appears/disappears ──────────── */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* ─── Card slide-up animation ─────────────────────────────────────────── */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out both;
+}
+
+/* ─── Smooth transitions for interactive elements ─────────────────────── */
+.card {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.btn {
+  transition: all 0.15s ease;
+}
+
+.toggle {
+  transition: background-color 0.2s ease;
+}
+
+/* ─── Navbar consistent styling ───────────────────────────────────────── */
+.navbar {
+  backdrop-filter: blur(12px);
+  background: oklch(0.97 0.005 260 / 0.85) !important;
+  border-color: oklch(0.9 0.01 260) !important;
+}
+
+[data-theme="dark"] .navbar {
+  background: oklch(0.2 0.02 260 / 0.85) !important;
+  border-color: oklch(0.3 0.02 260) !important;
+}
+
+/* ─── Modal mobile overflow fix ───────────────────────────────────────── */
+.modal-box {
+  max-height: 85dvh;
+  overflow-y: auto;
+  margin: auto;
+}
+
+@media (max-width: 640px) {
+  .modal-box {
+    max-height: 80dvh;
+    margin: 1rem;
+    width: calc(100% - 2rem) !important;
+  }
+}
