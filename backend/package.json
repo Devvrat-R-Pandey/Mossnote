@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Notebloom backend API — Node.js/Express/MongoDB with TypeScript",
+  "description": "Mossnote backend API — Node.js/Express/MongoDB with TypeScript",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",

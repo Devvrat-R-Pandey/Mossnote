@@ -38,7 +38,7 @@ export const Navbar = () => {
           <div className="w-full navbar bg-base-200 border-b border-base-300 px-4 shadow-sm">
             <div className="flex-1">
               <Link to="/" className="btn btn-ghost text-xl font-bold tracking-tight">
-                📝 Notebloom
+                📝 Mossnote
               </Link>
             </div>
             {/* Desktop: inline theme toggle */}
@@ -83,7 +83,7 @@ export const Navbar = () => {
         <div className="w-full navbar bg-base-200 border-b border-base-300 px-4 shadow-sm">
           <div className="flex-1">
             <Link to="/" className="btn btn-ghost text-xl font-bold tracking-tight">
-              📝 Notebloom
+              📝 Mossnote
             </Link>
           </div>
 

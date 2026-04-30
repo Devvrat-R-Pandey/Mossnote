@@ -17,7 +17,7 @@ export const RegisterPage = () => {
       <div className="card w-full max-w-sm bg-base-100 shadow-xl">
         <div className="card-body gap-2 p-5">
           <div className="text-center">
-            <h1 className="text-2xl font-bold">📝 Notebloom</h1>
+            <h1 className="text-2xl font-bold">📝 Mossnote</h1>
             <p className="text-base-content/50 text-sm">Create a new account</p>
           </div>
 

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: notebloom-api
+    name: mossnote-api
     runtime: node
     rootDir: backend
     buildCommand: npm install && npm run build

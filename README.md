@@ -1,17 +1,17 @@
-# 📝 Notebloom
+# 📝 Mossnote
 
 A full-stack note-taking application with role-based access control, shareable read-only links, activity logging, and real-time search.
 
 **Live Demo:**
-- Frontend: [Netlify URL] ← replace after deploy
-- Backend API: [Render URL] ← replace after deploy
+- Frontend: [https://mossnote.netlify.app](https://mossnote.netlify.app)
+- Backend API: [https://mossnote.onrender.com](https://mossnote.onrender.com)
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-Notebloom/
+Mossnote/
 ├── frontend/          # React + Vite + TypeScript + TailwindCSS + DaisyUI
 └── backend/           # Node.js + Express + TypeScript + MongoDB + JWT
 ```
@@ -142,7 +142,7 @@ npm install
 
 Create `backend/.env`:
 ```env
-MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/notebloom
+MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/mossnote
 JWT_SECRET=your_super_secret_key_here
 UPSTASH_REDIS_REST_URL=https://your-upstash-url.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your_upstash_token
@@ -184,7 +184,7 @@ For local dev, the Vite proxy forwards `/api` → `http://localhost:3000` automa
    UPSTASH_REDIS_REST_URL
    UPSTASH_REDIS_REST_TOKEN
    ```
-5. Copy your Render service URL (e.g. `https://notebloom-api.onrender.com`)
+5. Copy your Render service URL (e.g. `https://mossnote.onrender.com`)
 
 > A `render.yaml` blueprint is included at the project root for one-click deploy.
 
@@ -197,7 +197,7 @@ For local dev, the Vite proxy forwards `/api` → `http://localhost:3000` automa
    - **Publish directory:** `frontend/dist`
 3. Add environment variable in Netlify dashboard:
    ```
-   VITE_API_URL = https://notebloom-api.onrender.com/api
+   VITE_API_URL = https://mossnote.onrender.com/api
    ```
 4. Deploy — SPA routing is handled by `netlify.toml` redirects.
 

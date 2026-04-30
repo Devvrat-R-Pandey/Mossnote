@@ -3,7 +3,7 @@ import axios, { AxiosError } from "axios";
 import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { useUiStore } from "../store/uiStore";
 
-// In production, set VITE_API_URL to the Render backend URL (e.g. https://notebloom-api.onrender.com/api)
+// In production, set VITE_API_URL to the Render backend URL (e.g. https://mossnote.onrender.com/api)
 // In development, Vite proxy forwards /api → localhost:3000
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 

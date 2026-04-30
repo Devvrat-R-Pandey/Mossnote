@@ -27,7 +27,7 @@ app.use("/api/logs", logsRoutes);
 
 // Health check
 app.get("/", (_req, res) => {
-  res.json({ status: "OK", message: "Notebloom API is running" });
+  res.json({ status: "OK", message: "Mossnote API is running" });
 });
 
 // Start server
