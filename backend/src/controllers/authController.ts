@@ -1,32 +1,60 @@
+// Handles user registration, login, and JWT generation.
 import { Request, Response } from "express";
-import User, { IUser, UserRole } from "../models/User.js";
+import User, { IUser } from "../models/User.js";
 import jwt from "jsonwebtoken";
 
+const JWT_EXPIRY = "7d";
+const MIN_PASSWORD_LENGTH = 8;
+
 const generateToken = (userId: string): string => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn: "7d" });
+  return jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn: JWT_EXPIRY });
 };
 
 // POST /api/auth/register
+// SECURITY: `role` is intentionally NOT destructured from req.body.
+// Any role value sent by the client is silently discarded.
+// All new accounts receive the "editor" role via the schema default.
+// Admin accounts are created through a controlled server-side process.
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, email, password, role } = req.body as {
+    const { name, email, password } = req.body as {
       name: string;
       email: string;
       password: string;
-      role?: UserRole;
     };
-
-    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
-    if (existingUser) {
-      res.status(400).json({ message: "User already exists" });
+    if (
+      typeof name !== "string" ||
+      typeof email !== "string" ||
+      typeof password !== "string"
+    ) {
+      res.status(400).json({ message: "Name, email, and password are required" });
       return;
     }
 
+    const normalizedName = name.trim();
+    const normalizedEmail = email.toLowerCase().trim();
+
+    if (!normalizedName || !normalizedEmail || !password) {
+      res.status(400).json({ message: "Name, email, and password are required" });
+      return;
+    }
+
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      res.status(400).json({ message: "Password must be at least 8 characters long" });
+      return;
+    }
+
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      res.status(409).json({ message: "User already exists" });
+      return;
+    }
+
+    // role is not passed in - Mongoose applies the schema default ("editor")
     const user: IUser = await User.create({
-      name,
-      email: email.toLowerCase().trim(),
+      name: normalizedName,
+      email: normalizedEmail,
       password,
-      role: role ?? "viewer",
     });
 
     const token = generateToken((user._id as unknown as string).toString());
@@ -41,8 +69,19 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body as { email: string; password: string };
+    if (typeof email !== "string" || typeof password !== "string") {
+      res.status(400).json({ message: "Email and password are required" });
+      return;
+    }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    const normalizedEmail = email.toLowerCase().trim();
+
+    if (!normalizedEmail || !password) {
+      res.status(400).json({ message: "Email and password are required" });
+      return;
+    }
+
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       res.status(401).json({ message: "Invalid email or password" });
       return;

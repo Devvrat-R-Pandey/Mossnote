@@ -1,5 +1,6 @@
+// Authorizes authenticated users by registered-user role.
 import { Request, Response, NextFunction } from "express";
-import { UserRole } from "../models/User.js";
+import { type UserRole } from "../models/User.js";
 
 /**
  * Role-based authorization middleware.

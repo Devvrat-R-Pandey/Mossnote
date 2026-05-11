@@ -1,4 +1,3 @@
-// pages/LoginPage.tsx
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { LoginForm } from "../components/forms/LoginForm";
@@ -8,31 +7,36 @@ export const LoginPage = () => {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
 
-  // Already logged in → go to home (redirect is also triggered in LoginForm after toast)
   useEffect(() => {
     if (user) navigate("/", { replace: true });
   }, [user, navigate]);
 
   return (
-    <div className="flex items-center justify-center h-[calc(100dvh-64px)] bg-base-200 px-4 animate-fade-in">
-      <div className="card w-full max-w-sm bg-base-100 shadow-xl">
-        <div className="card-body gap-2 p-5">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold">📝 Mossnote</h1>
-            <p className="text-base-content/50 text-sm">Sign in to your account</p>
-          </div>
-
-          <div className="divider my-0" />
-
-          <LoginForm />
-
-          <p className="text-center text-sm text-base-content/60">
-            Don't have an account?{" "}
-            <Link to="/register" className="link link-primary font-medium">
-              Register
-            </Link>
-          </p>
+    <div className="flex min-h-screen items-center justify-center bg-bg px-4 animate-fade-in">
+      <div className="w-full max-w-sm rounded-xl border border-border bg-surface p-6 shadow-lg">
+        <div className="text-center mb-6">
+          <img
+            src="/Mossnote.png"
+            alt="Mossnote"
+            className="mx-auto h-12 w-auto object-contain mb-3"
+            draggable={false}
+          />
+          <p className="mt-1 text-sm text-txt-secondary">Sign in to your account</p>
         </div>
+
+        <div className="h-px bg-border mb-5" />
+
+        <LoginForm />
+
+        <p className="mt-5 text-center text-sm text-txt-secondary">
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            className="font-medium text-primary transition-colors hover:text-primary-hover"
+          >
+            Register
+          </Link>
+        </p>
       </div>
     </div>
   );

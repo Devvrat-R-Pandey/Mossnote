@@ -11,6 +11,11 @@ export interface Note {
   updatedAt: string;
 }
 
+export interface SharedNoteResponse {
+  viewerToken: string;
+  note: Note;
+}
+
 // Alias for backward compatibility — components use `id` while MongoDB uses `_id`
 export type NormalizedNote = Note & { id: string };
 
@@ -34,8 +39,22 @@ export const getNoteById = async (id: string): Promise<NormalizedNote> => {
 
 export const getNoteBySharedId = async (sharedId: string): Promise<NormalizedNote | null> => {
   try {
-    const res = await api.get<Note>(`/notes/shared/${sharedId}`);
-    return normalize(res.data);
+    const res = await api.get<SharedNoteResponse>(`/notes/shared/${sharedId}`);
+    return normalize(res.data.note);
+  } catch {
+    return null;
+  }
+};
+
+export const getSharedNote = async (
+  shareToken: string
+): Promise<{ viewerToken: string; note: NormalizedNote } | null> => {
+  try {
+    const res = await api.get<SharedNoteResponse>(`/notes/shared/${shareToken}`);
+    return {
+      viewerToken: res.data.viewerToken,
+      note: normalize(res.data.note),
+    };
   } catch {
     return null;
   }

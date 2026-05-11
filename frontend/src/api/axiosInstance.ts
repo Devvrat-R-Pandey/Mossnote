@@ -1,20 +1,18 @@
-// api/axiosInstance.ts
 import axios, { AxiosError } from "axios";
 import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { useUiStore } from "../store/uiStore";
 
-// In production, set VITE_API_URL to the Render backend URL (e.g. https://mossnote.onrender.com/api)
-// In development, Vite proxy forwards /api → localhost:3000
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+if (!import.meta.env.VITE_API_BASE_URL) {
+  throw new Error("VITE_API_BASE_URL is not defined. Check your .env file.");
+}
 
 export const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Attach JWT token from localStorage to every request
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -28,15 +26,17 @@ api.interceptors.response.use(
   (error: AxiosError) => {
     const status = error.response?.status;
 
-    // If 401, clear auth state (token expired/invalid)
     if (status === 401) {
       localStorage.removeItem("token");
+      import("../store/authStore").then(({ useAuthStore }) => {
+        if (useAuthStore.getState().user) {
+          useAuthStore.setState({ user: null, error: null });
+        }
+      });
     }
 
-    // If 429, signal rate-limiting to the UI
     if (status === 429) {
       useUiStore.getState().setRateLimited(true);
-      // Auto-clear after 10 seconds
       setTimeout(() => useUiStore.getState().setRateLimited(false), 10000);
     }
 

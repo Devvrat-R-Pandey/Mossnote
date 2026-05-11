@@ -12,6 +12,7 @@ import {
 import { useLogStore } from "./logStore";
 import { useAuthStore } from "./authStore";
 
+
 interface NotesState {
   notes: NormalizedNote[];
   loading: boolean;
@@ -40,7 +41,7 @@ export const useNotesStore = create<NotesState>()(
         } catch {
           toast.error("Server is unavailable. Please check your connection or try again later.");
           set(
-            { loading: false },
+            { loading: false, error: "Failed to load notes" },
             false,
             "notes/fetchNotes/rejected"
           );
@@ -119,16 +120,15 @@ export const useNotesStore = create<NotesState>()(
       removeNote: async (id) => {
         const user = useAuthStore.getState().user;
         const noteToDelete = get().notes.find((n) => n.id === id);
+        // Optimistic removal
+        set(
+          (s) => ({ notes: s.notes.filter((n) => n.id !== id) }),
+          false,
+          "notes/removeNote/optimistic"
+        );
 
         try {
           await deleteNote(id);
-
-          set(
-            (s) => ({ notes: s.notes.filter((n) => n.id !== id) }),
-            false,
-            "notes/removeNote"
-          );
-
           toast.success(`"${noteToDelete?.title ?? "Note"}" deleted`);
 
           if (user) {
@@ -141,6 +141,14 @@ export const useNotesStore = create<NotesState>()(
             });
           }
         } catch {
+          // Rollback — restore the note to its original position
+          if (noteToDelete) {
+            set(
+              (s) => ({ notes: [...s.notes, noteToDelete] }),
+              false,
+              "notes/removeNote/rollback"
+            );
+          }
           toast.error("Failed to delete note");
         }
       },
@@ -151,14 +159,13 @@ export const useNotesStore = create<NotesState>()(
         const note = get().notes.find((n) => n.id === id);
         if (!note || !user) return "";
 
-        let sharedId = note.sharedId;
-
         try {
+          let sharedId = note.sharedId;
+
           if (!sharedId) {
-            sharedId =
-              Math.random().toString(36).slice(2, 7) +
-              Date.now().toString(36).slice(-5);
-            const updated = await updateNote(id, { ...note, sharedId });
+            // The backend replaces this sentinel with a cryptographically secure token.
+            const updated = await updateNote(id, { ...note, sharedId: "generate" });
+            sharedId = updated.sharedId ?? null;
             set(
               (s) => ({
                 notes: s.notes.map((n) => (n.id === id ? updated : n)),
@@ -166,6 +173,11 @@ export const useNotesStore = create<NotesState>()(
               false,
               "notes/shareNote"
             );
+          }
+
+          if (!sharedId) {
+            toast.error("Failed to generate share link");
+            return "";
           }
 
           await useLogStore.getState().addLog({
@@ -184,6 +196,6 @@ export const useNotesStore = create<NotesState>()(
         }
       },
     }),
-    { name: "NotesStore" }
+    { name: "NotesStore", store: "notes" }
   )
 );

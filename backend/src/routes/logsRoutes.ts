@@ -1,3 +1,4 @@
+// Mounts authenticated audit-log routes.
 import { Router } from "express";
 import { getAllLogs, createLog, deleteLog } from "../controllers/logsController.js";
 import authMiddleware from "../middleware/authMiddleware.js";

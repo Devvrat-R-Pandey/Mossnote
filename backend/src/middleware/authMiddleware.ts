@@ -1,5 +1,7 @@
+// Authenticates Bearer JWTs and attaches the registered user document to requests.
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import User, { IUser } from "../models/User.js";
 
 // Extend Express Request to include the user property
@@ -26,6 +28,11 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction): 
 
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
+
+    if (!decoded.userId || !mongoose.isValidObjectId(decoded.userId)) {
+      res.status(401).json({ message: "Invalid or expired token" });
+      return;
+    }
 
     const user = await User.findById(decoded.userId).select("-password");
     if (!user) {

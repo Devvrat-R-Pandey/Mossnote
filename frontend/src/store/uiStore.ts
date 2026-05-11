@@ -1,93 +1,73 @@
-// store/uiStore.ts
 import { create } from "zustand";
-import { persist, devtools } from "zustand/middleware";
+import { devtools, persist } from "zustand/middleware";
 
-// ─── Note Modal ───────────────────────────────────────────────────────────────
 export type ModalMode = "create" | "edit" | "view" | "delete" | null;
-
-// ─── Theme ────────────────────────────────────────────────────────────────────
 export type Theme = "light" | "dark";
 
-// ─── State shape ─────────────────────────────────────────────────────────────
 interface UiState {
-  // theme
   theme: Theme;
   toggleTheme: () => void;
 
-  // rate limiting
+  sidebarOpen: boolean;
+  toggleSidebar: () => void;
+  closeSidebar: () => void;
+
   rateLimited: boolean;
   setRateLimited: (value: boolean) => void;
 
-  // note modal — one modal open at a time, tracked globally
   modalMode: ModalMode;
   activeNoteId: string | null;
   openModal: (mode: ModalMode, noteId?: string | null) => void;
   closeModal: () => void;
 
-  // share urls per note (noteId → shareUrl)
-  shareUrls: Record<string, string>;
-  setShareUrl: (noteId: string, url: string) => void;
-  clearShareUrl: (noteId: string) => void;
+  /** Reset all transient UI state (called on logout) */
+  resetEphemeralState: () => void;
 }
 
 export const useUiStore = create<UiState>()(
   devtools(
     persist(
       (set, get) => ({
-        // ── theme ──────────────────────────────────────────────────────────
+        // ── Theme ───────────────────────────────────────────────────────
         theme: "light",
         toggleTheme: () => {
           const next: Theme = get().theme === "light" ? "dark" : "light";
-          document.documentElement.setAttribute("data-theme", next);
           set({ theme: next }, false, "ui/toggleTheme");
         },
 
-        // ── rate limiting ──────────────────────────────────────────────────
+        // ── Sidebar ─────────────────────────────────────────────────────
+        sidebarOpen: false,
+        toggleSidebar: () =>
+          set((s) => ({ sidebarOpen: !s.sidebarOpen }), false, "ui/toggleSidebar"),
+        closeSidebar: () => set({ sidebarOpen: false }, false, "ui/closeSidebar"),
+
+        // ── Rate limiting ────────────────────────────────────────────────
         rateLimited: false,
         setRateLimited: (value) =>
           set({ rateLimited: value }, false, "ui/setRateLimited"),
 
-        // ── note modal ────────────────────────────────────────────────────
+        // ── Modals ───────────────────────────────────────────────────────
         modalMode: null,
         activeNoteId: null,
         openModal: (mode, noteId = null) =>
-          set(
-            { modalMode: mode, activeNoteId: noteId ?? null },
-            false,
-            "ui/openModal"
-          ),
+          set({ modalMode: mode, activeNoteId: noteId ?? null }, false, "ui/openModal"),
         closeModal: () =>
-          set(
-            { modalMode: null, activeNoteId: null },
-            false,
-            "ui/closeModal"
-          ),
+          set({ modalMode: null, activeNoteId: null }, false, "ui/closeModal"),
 
-        // ── share urls ────────────────────────────────────────────────────
-        shareUrls: {},
-        setShareUrl: (noteId, url) =>
+        // ── Reset ────────────────────────────────────────────────────────
+        resetEphemeralState: () =>
           set(
-            (s) => ({ shareUrls: { ...s.shareUrls, [noteId]: url } }),
+            { modalMode: null, activeNoteId: null, rateLimited: false, sidebarOpen: false },
             false,
-            "ui/setShareUrl"
-          ),
-        clearShareUrl: (noteId) =>
-          set(
-            (s) => {
-              const next = { ...s.shareUrls };
-              delete next[noteId];
-              return { shareUrls: next };
-            },
-            false,
-            "ui/clearShareUrl"
+            "ui/resetEphemeralState"
           ),
       }),
       {
         name: "ui-storage",
-        // Only persist theme — modal state is ephemeral
+        // Only persist theme — all other UI state is session-only
         partialize: (s) => ({ theme: s.theme }),
       }
     ),
-    { name: "UiStore" }
+    { name: "UiStore", store: "ui" }
   )
 );

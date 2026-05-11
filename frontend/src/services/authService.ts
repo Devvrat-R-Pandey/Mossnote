@@ -5,14 +5,14 @@ export interface User {
   _id: string;
   email: string;
   name: string;
-  role: "admin" | "editor" | "viewer";
+  role: "admin" | "editor";
 }
 
+// role is removed — the backend decides, not the client
 export interface RegisterData {
   email: string;
   password: string;
   name: string;
-  role: "admin" | "editor" | "viewer";
 }
 
 interface AuthResponse {
@@ -28,14 +28,10 @@ export const loginUser = async (
   try {
     const res = await api.post<AuthResponse>("/auth/login", { email, password });
     const { token, user } = res.data;
-
-    // Store JWT token
     localStorage.setItem("token", token);
-
     return user;
   } catch (error: unknown) {
     console.error("Login error:", error);
-    // Check for specific backend error messages
     if (
       error &&
       typeof error === "object" &&
@@ -50,7 +46,7 @@ export const loginUser = async (
   }
 };
 
-// REGISTER
+// REGISTER — role is not sent in the payload
 export const registerUser = async (data: RegisterData): Promise<User> => {
   try {
     const res = await api.post<AuthResponse>("/auth/register", data);
@@ -58,7 +54,6 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
     return res.data.user;
   } catch (error: unknown) {
     console.error("Register error:", error);
-
     if (
       error &&
       typeof error === "object" &&
@@ -69,12 +64,11 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
         (error as { response: { data: { message: string } } }).response.data.message
       );
     }
-
     throw new Error("Registration failed");
   }
 };
 
-// LOGOUT (clear token)
+// LOGOUT
 export const logoutUser = () => {
   localStorage.removeItem("token");
 };

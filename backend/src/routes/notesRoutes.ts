@@ -1,10 +1,11 @@
+// Mounts public shared-note and protected note CRUD routes.
 import { Router } from "express";
 import {
   createNote,
   deleteNote,
   getAllNotes,
   getNoteById,
-  getNoteBySharedId,
+  getNoteByShareToken,
   updateNote,
 } from "../controllers/notesController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
@@ -13,17 +14,17 @@ import authorizeRoles from "../middleware/authorizeRoles.js";
 const router = Router();
 
 // Public route — shared note lookup (must be BEFORE /:id to avoid conflict)
-router.get("/shared/:sharedId", getNoteBySharedId);
+router.get("/shared/:shareToken", getNoteByShareToken);
 
-// Protected routes — all authenticated users can read
-router.get("/", authMiddleware, getAllNotes);
-router.get("/:id", authMiddleware, getNoteById);
+// Protected routes - editors and admins can read
+router.get("/", authMiddleware, authorizeRoles("admin", "editor"), getAllNotes);
+router.get("/:id", authMiddleware, authorizeRoles("admin", "editor"), getNoteById);
 
 // Write operations — admin and editor only
 router.post("/", authMiddleware, authorizeRoles("admin", "editor"), createNote);
 router.put("/:id", authMiddleware, authorizeRoles("admin", "editor"), updateNote);
 
-// Delete — admin only
-router.delete("/:id", authMiddleware, authorizeRoles("admin"), deleteNote);
+// Delete - owner editor or admin
+router.delete("/:id", authMiddleware, authorizeRoles("admin", "editor"), deleteNote);
 
 export default router;

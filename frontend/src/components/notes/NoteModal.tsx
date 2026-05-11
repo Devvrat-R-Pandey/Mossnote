@@ -1,9 +1,10 @@
 // components/notes/NoteModal.tsx
-import { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNotesStore } from "../../store/notesStore";
-import { useUiStore } from "../../store/uiStore";
+import { MarkdownRenderer } from "../layout/MarkdownRenderer";
 import type { NormalizedNote } from "../../services/notesService";
+import { Eye, Pencil } from "lucide-react";
 
 interface FormValues {
   title: string;
@@ -16,123 +17,161 @@ interface NoteModalProps {
   onClose: () => void;
 }
 
-export const NoteModal = ({ mode, note, onClose }: NoteModalProps) => {
-  const addNote = useNotesStore((s) => s.addNote);
-  const editNote = useNotesStore((s) => s.editNote);
-  const closeModal = useUiStore((s) => s.closeModal);
+export const NoteModal = React.memo(
+  ({ mode, note, onClose }: NoteModalProps) => {
+    const addNote = useNotesStore((s) => s.addNote);
+    const editNote = useNotesStore((s) => s.editNote);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
-    defaultValues: {
-      title: note?.title ?? "",
-      content: note?.content ?? "",
-    },
-  });
+    // Preview toggle
+    const [showPreview, setShowPreview] = useState(false);
 
-  // Sync form when note prop changes (edit mode)
-  useEffect(() => {
-    reset({ title: note?.title ?? "", content: note?.content ?? "" });
-  }, [note, reset]);
+    const {
+      register,
+      handleSubmit,
+      reset,
+      watch,
+      formState: { errors, isSubmitting },
+    } = useForm<FormValues>({
+      defaultValues: {
+        title: note?.title ?? "",
+        content: note?.content ?? "",
+      },
+    });
 
-  // Stable close handler — prefers explicit onClose prop, falls back to store
-  const handleClose = useCallback(() => {
-    onClose ? onClose() : closeModal();
-  }, [onClose, closeModal]);
+    const watchedContent = watch("content");
 
-  const onSubmit = useCallback(
-    async (data: FormValues) => {
-      if (mode === "create") {
-        await addNote(data);
-      } else if (note) {
-        await editNote(note.id, data);
-      }
-      handleClose();
-    },
-    [mode, note, addNote, editNote, handleClose]
-  );
+    useEffect(() => {
+      reset({ title: note?.title ?? "", content: note?.content ?? "" });
+    }, [note, reset]);
 
-  return (
-    <dialog open className="modal modal-open">
-      <div className="modal-box w-11/12 max-w-lg animate-fade-in">
-        <h3 className="font-bold text-lg mb-4">
-          {mode === "create" ? "📝 New Note" : "✏️ Edit Note"}
-        </h3>
+    const onSubmit = useCallback(
+      async (data: FormValues) => {
+        if (mode === "create") {
+          await addNote(data);
+        } else if (note) {
+          await editNote(note.id, data);
+        }
+        onClose();
+      },
+      [mode, note, addNote, editNote, onClose],
+    );
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Title */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-medium">Title</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Note title..."
-              className={`input input-bordered w-full ${errors.title ? "input-error" : ""}`}
-              {...register("title", {
-                required: "Title is required",
-                maxLength: { value: 120, message: "Title is too long (max 120 chars)" },
-              })}
-            />
-            {errors.title && (
-              <label className="label">
-                <span className="label-text-alt text-error">{errors.title.message}</span>
-              </label>
-            )}
-          </div>
+    const togglePreview = useCallback(() => setShowPreview((p) => !p), []);
 
-          {/* Content */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-medium">Content</span>
-            </label>
-            <textarea
-              placeholder="Write your note..."
-              rows={5}
-              className={`textarea textarea-bordered w-full resize-none ${
-                errors.content ? "textarea-error" : ""
-              }`}
-              {...register("content", {
-                required: "Content is required",
-                minLength: { value: 1, message: "Content cannot be empty" },
-              })}
-            />
-            {errors.content && (
-              <label className="label">
-                <span className="label-text-alt text-error">{errors.content.message}</span>
-              </label>
-            )}
-          </div>
+    const inputClass =
+      "w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-txt placeholder:text-txt-tertiary outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20";
 
-          <div className="modal-action">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="btn btn-ghost"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="btn btn-primary"
-            >
-              {isSubmitting ? (
-                <span className="loading loading-spinner loading-sm" />
-              ) : mode === "create" ? (
-                "Create Note"
-              ) : (
-                "Save Changes"
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative w-full max-w-lg rounded-xl border border-border bg-surface shadow-lg p-6 animate-fade-in">
+          <h3 className="font-bold text-lg text-txt mb-4">
+            {mode === "create" ? "📝 New Note" : "✏️ Edit Note"}
+          </h3>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-medium text-txt mb-1.5">Title</label>
+              <input
+                type="text"
+                placeholder="Note title..."
+                className={`${inputClass} ${errors.title ? "border-danger" : ""}`}
+                {...register("title", {
+                  required: "Title is required",
+                  maxLength: {
+                    value: 120,
+                    message: "Title is too long (max 120 chars)",
+                  },
+                })}
+              />
+              {errors.title && (
+                <p className="mt-1 text-xs text-danger">{errors.title.message}</p>
               )}
-            </button>
-          </div>
-        </form>
+            </div>
+
+            {/* Content — Edit / Preview toggle */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-medium text-txt">Content</label>
+                <button
+                  type="button"
+                  onClick={togglePreview}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-txt-secondary transition-colors hover:text-txt"
+                >
+                  {showPreview ? (
+                    <>
+                      <Pencil size={12} />
+                      Edit
+                    </>
+                  ) : (
+                    <>
+                      <Eye size={12} />
+                      Preview
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {showPreview ? (
+                <div className="w-full min-h-[8rem] max-h-60 overflow-y-auto rounded-lg border border-border bg-bg px-4 py-3 scrollbar-thin">
+                  {watchedContent ? (
+                    <MarkdownRenderer content={watchedContent} className="text-sm" />
+                  ) : (
+                    <p className="text-sm text-txt-tertiary italic">
+                      Nothing to preview
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <textarea
+                    placeholder="Write your note... (supports Markdown)"
+                    rows={5}
+                    className={`${inputClass} resize-none ${errors.content ? "border-danger" : ""}`}
+                    {...register("content", {
+                      required: "Content is required",
+                      minLength: {
+                        value: 1,
+                        message: "Content cannot be empty",
+                      },
+                    })}
+                  />
+                  {errors.content && (
+                    <p className="mt-1 text-xs text-danger">{errors.content.message}</p>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-txt-secondary transition-colors hover:bg-surface-hover"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                ) : mode === "create" ? (
+                  "Create Note"
+                ) : (
+                  "Save Changes"
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-      <div className="modal-backdrop" onClick={handleClose} />
-    </dialog>
-  );
-};
+    );
+  },
+);
+
+NoteModal.displayName = "NoteModal";

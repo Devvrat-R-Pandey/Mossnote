@@ -7,6 +7,7 @@ import { useDebounce } from "../hooks/useDebounce";
 import { NoteCard } from "../components/notes/NoteCard";
 import { NoteModal } from "../components/notes/NoteModal";
 import { SearchBar } from "../components/layout/SearchBar";
+import { NotebookPen, Plus } from "lucide-react";
 
 export const HomePage = () => {
   // ── Granular selectors prevent unnecessary re-renders ─────────────────
@@ -50,14 +51,14 @@ export const HomePage = () => {
   const isCreateOpen = modalMode === "create";
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-5xl">
+    <div className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8">
       {/* Page header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-bold">My Notes</h1>
-          <p className="text-sm text-base-content/50">
+          <h1 className="text-xl font-bold tracking-tight text-txt">My Notes</h1>
+          <p className="text-sm text-txt-secondary">
             Welcome back,{" "}
-            <span className="font-medium text-base-content">
+            <span className="font-medium text-txt">
               {user?.name ?? user?.email}
             </span>
           </p>
@@ -68,9 +69,10 @@ export const HomePage = () => {
           {canCreate && (
             <button
               onClick={handleOpenCreate}
-              className="btn btn-primary btn-sm whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground whitespace-nowrap transition-colors hover:bg-primary-hover"
             >
-              + New Note
+              <Plus size={16} />
+              New Note
             </button>
           )}
         </div>
@@ -79,25 +81,29 @@ export const HomePage = () => {
       {/* Loading spinner */}
       {loading && (
         <div className="flex justify-center py-12">
-          <span className="loading loading-spinner loading-md text-primary" />
+          <span className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
         </div>
       )}
 
-
-
       {/* Empty state */}
       {!loading && !error && filteredNotes.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
-          <p className="text-5xl">📭</p>
-          <p className="text-lg font-semibold text-base-content/70">
-            {debouncedSearch ? "No notes match your search" : "No notes yet"}
-          </p>
+        <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
+          <NotebookPen size={48} className="text-txt-tertiary" strokeWidth={1.5} />
+          <div className="flex flex-col gap-1">
+            <p className="text-lg font-semibold text-txt-secondary">
+              {debouncedSearch ? "No notes match your search" : "No notes yet"}
+            </p>
+            <p className="text-sm text-txt-tertiary">
+              {debouncedSearch ? "Try a different search term" : "Create your first note to get started"}
+            </p>
+          </div>
           {canCreate && !debouncedSearch && (
             <button
               onClick={handleOpenCreate}
-              className="btn btn-primary btn-sm mt-2"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
             >
-              Create your first note
+              <Plus size={16} />
+              New Note
             </button>
           )}
         </div>
@@ -105,7 +111,7 @@ export const HomePage = () => {
 
       {/* Notes grid */}
       {!loading && filteredNotes.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filteredNotes.map((note) => (
             <NoteCard key={note.id} note={note} />
           ))}
@@ -114,7 +120,7 @@ export const HomePage = () => {
 
       {/* Search results count */}
       {debouncedSearch && filteredNotes.length > 0 && (
-        <p className="text-sm text-base-content/40 mt-4 text-center">
+        <p className="text-sm text-txt-tertiary mt-4 text-center">
           {filteredNotes.length} result{filteredNotes.length !== 1 ? "s" : ""} for "
           {debouncedSearch}"
         </p>
@@ -123,17 +129,6 @@ export const HomePage = () => {
       {/* Create note modal */}
       {isCreateOpen && (
         <NoteModal mode="create" onClose={closeModal} />
-      )}
-
-      {/* Viewer notice */}
-      {user?.role === "viewer" && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-          <div className="alert alert-info shadow-lg px-6 py-3 text-sm w-auto">
-            <span>
-              You are in <strong>viewer mode</strong> — you can only read notes.
-            </span>
-          </div>
-        </div>
       )}
     </div>
   );

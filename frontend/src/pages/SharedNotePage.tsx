@@ -1,72 +1,104 @@
-// pages/SharedNotePage.tsx
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { getNoteBySharedId } from "../services/notesService";
+import { Link, useParams } from "react-router-dom";
+import { getSharedNote } from "../services/notesService";
 import type { NormalizedNote } from "../services/notesService";
 import { formatIST } from "../utils/formatDate";
+import { MarkdownRenderer } from "../components/layout/MarkdownRenderer";
 
-export const SharedNotePage = () => {
+const SharedNotePage = () => {
   const { sharedId } = useParams<{ sharedId: string }>();
   const [note, setNote] = useState<NormalizedNote | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    if (!sharedId) return;
-    getNoteBySharedId(sharedId)
-      .then((data: NormalizedNote | null) => {
-        if (data) setNote(data);
-        else setNotFound(true);
-      })
-      .catch(() => setNotFound(true))
-      .finally(() => setLoading(false));
+    let isMounted = true;
+
+    if (!sharedId) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
+
+    const loadSharedNote = async () => {
+      try {
+        const sharedNote = await getSharedNote(sharedId);
+        if (!isMounted) return;
+
+        if (!sharedNote) {
+          setNotFound(true);
+          return;
+        }
+
+        setNote(sharedNote.note);
+      } catch {
+        if (isMounted) setNotFound(true);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    void loadSharedNote();
+
+    return () => {
+      isMounted = false;
+    };
   }, [sharedId]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <span className="loading loading-spinner loading-lg text-primary" />
-      </div>
+      <main className="flex h-screen items-center justify-center bg-bg">
+        <span className="inline-block h-7 w-7 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+      </main>
     );
   }
 
   if (notFound || !note) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <p className="text-5xl">🔍</p>
-        <h1 className="text-2xl font-bold">Note Not Found</h1>
-        <p className="text-base-content/50">
-          This shared link may be invalid or expired.
+      <main className="flex h-screen flex-col items-center justify-center gap-4 bg-bg px-4 text-center">
+        <h1 className="text-xl font-bold tracking-tight text-txt">Note Not Available</h1>
+        <p className="text-sm text-txt-secondary">
+          This note is not available or the link has expired.
         </p>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-2xl">
-      <div className="card bg-base-100 border border-base-200 shadow-md">
-        <div className="card-body gap-4">
-          <div className="flex items-center gap-2">
-            <span className="badge badge-info badge-sm">Read-Only</span>
-            <span className="text-xs text-base-content/40">Shared Note</span>
-          </div>
-
-          <h1 className="text-2xl font-bold">{note.title}</h1>
-
-          <div className="divider my-0" />
-
-          <p className="text-base-content/80 whitespace-pre-wrap leading-relaxed">
-            {note.content}
-          </p>
-
-          <div className="divider my-0" />
-
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between text-xs text-base-content/40">
-            <span>By {note.owner}</span>
-            <span>Last modified: {formatIST(note.updatedAt)}</span>
-          </div>
+    <main className="h-screen overflow-y-auto bg-bg">
+      <article className="mx-auto max-w-2xl px-4 py-10">
+        <div className="mb-6 flex items-center gap-2">
+          <span className="rounded-full bg-info-light px-2.5 py-0.5 text-[11px] font-semibold text-info">Read-Only</span>
+          <span className="text-xs text-txt-tertiary">Shared Note</span>
         </div>
-      </div>
-    </div>
+
+        <h1 className="text-3xl font-bold leading-tight tracking-tight text-txt">
+          {note.title}
+        </h1>
+
+        <div className="mt-2 text-xs text-txt-tertiary">
+          By {note.owner} - Last modified: {formatIST(note.updatedAt)}
+        </div>
+
+        <div className="my-6 h-px bg-border" />
+
+        <MarkdownRenderer content={note.content} className="text-txt-secondary" />
+
+        <div className="my-6 h-px bg-border" />
+
+        <div className="rounded-lg border border-border bg-bg px-4 py-3 text-sm text-txt-secondary">
+          Want a space for your own notes?{" "}
+          <Link
+            to="/register"
+            className="font-medium text-primary transition-colors hover:text-primary-hover"
+          >
+            Create a Mossnote account
+          </Link>
+          .
+        </div>
+      </article>
+    </main>
   );
 };
+
+export default SharedNotePage;

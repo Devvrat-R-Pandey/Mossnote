@@ -2,6 +2,8 @@
 import { create } from "zustand";
 import { persist, devtools } from "zustand/middleware";
 import { loginUser, registerUser, logoutUser, type User } from "../services/authService";
+import { useAssistantStore } from "./assistantStore";
+import { useUiStore } from "./uiStore";
 
 interface AuthState {
   user: User | null;
@@ -10,12 +12,8 @@ interface AuthState {
   registerSuccess: boolean;
 
   login: (email: string, password: string) => Promise<void>;
-  register: (
-    email: string,
-    password: string,
-    name: string,
-    role?: "admin" | "editor" | "viewer"
-  ) => Promise<void>;
+  // role is removed - the backend enforces "editor" as the default
+  register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
   clearError: () => void;
   clearRegisterSuccess: () => void;
@@ -44,14 +42,15 @@ export const useAuthStore = create<AuthState>()(
         },
 
         // ── REGISTER ───────────────────────────────────────────────────────
-        register: async (email, password, name, role = "viewer") => {
+        // No role parameter - backend assigns "editor" via the schema default
+        register: async (email, password, name) => {
           set(
             { loading: true, error: null, registerSuccess: false },
             false,
             "auth/register/pending"
           );
           try {
-            await registerUser({ email, password, name, role });
+            await registerUser({ email, password, name });
             set(
               { loading: false, registerSuccess: true },
               false,
@@ -66,7 +65,9 @@ export const useAuthStore = create<AuthState>()(
 
         // ── LOGOUT ────────────────────────────────────────────────────────
         logout: () => {
-          logoutUser(); // Clear JWT from localStorage
+          logoutUser();
+          useAssistantStore.getState().clearMessages();
+          useUiStore.getState().resetEphemeralState();
           set({ user: null, error: null }, false, "auth/logout");
         },
 
@@ -77,10 +78,9 @@ export const useAuthStore = create<AuthState>()(
       }),
       {
         name: "auth-storage",
-        // Only persist the logged-in user — nothing else
         partialize: (state) => ({ user: state.user }),
       }
     ),
-    { name: "AuthStore" }
+    { name: "AuthStore", store: "auth" }
   )
 );

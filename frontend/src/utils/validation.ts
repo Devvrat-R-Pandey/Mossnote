@@ -8,8 +8,6 @@ export const emailValidation = {
   },
 };
 
-// utils/validation.ts
-
 export const passwordValidation = {
   required: "Password is required",
 

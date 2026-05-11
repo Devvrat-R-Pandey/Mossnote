@@ -1,13 +1,18 @@
+// Configures rate limiters for general and auth traffic.
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-// 50 requests per 60 seconds (sliding window)
-const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
+const redis = Redis.fromEnv();
+
+export const generalRateLimit = new Ratelimit({
+  redis,
   limiter: Ratelimit.slidingWindow(50, "60 s"),
 });
 
-export default ratelimit;
+export const authRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, "60 s"),
+});

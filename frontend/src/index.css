@@ -1,103 +1,178 @@
 @import "tailwindcss";
+@import "@fontsource-variable/geist";
 
-@plugin "daisyui";
+/* ─── Dark mode via Tailwind's class strategy ─────────────────────────── */
+@custom-variant dark (&:is(.dark *));
 
-/* ─── Theme-aware gradient background ─────────────────────────────────── */
-.bg-gradient-main {
-  background: radial-gradient(125% 125% at 50% 10%, oklch(0.97 0.01 260) 40%, oklch(0.65 0.18 280) 100%);
-  transition: background 0.3s ease;
+/* ─── Root Layout ─────────────────────────────────────────────────────── */
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
 }
 
-[data-theme="dark"] .bg-gradient-main {
-  background: radial-gradient(125% 125% at 50% 10%, oklch(0.18 0.02 260) 40%, oklch(0.25 0.12 280) 100%);
+/* ─── Design Tokens ───────────────────────────────────────────────────── */
+:root {
+  --color-primary: #2CA044;
+  --color-primary-hover: #237e36;
+  --color-primary-light: #f0fdf4;
+  --color-primary-foreground: #ffffff;
+
+  --color-bg: #f9fafb;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f3f4f6;
+  --color-surface-raised: #ffffff;
+
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+
+  --color-text: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+  --color-text-inverse: #ffffff;
+
+  --color-danger: #ef4444;
+  --color-danger-light: #fef2f2;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fffbeb;
+  --color-success: #10b981;
+  --color-success-light: #ecfdf5;
+  --color-info: #3b82f6;
+  --color-info-light: #eff6ff;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+
+  --radius: 8px;
 }
 
-/* ─── Rate limit card — matches background gradient tones ─────────────── */
-.rate-limit-card {
-  background: oklch(0.92 0.04 270);
-  color: oklch(0.25 0.05 270);
+.dark {
+  --color-primary: #4ade80;
+  --color-primary-hover: #2CA044;
+  --color-primary-light: rgba(44, 160, 68, 0.15);
+  --color-primary-foreground: #ffffff;
+
+  --color-bg: #030712;
+  --color-surface: #111827;
+  --color-surface-hover: #1f2937;
+  --color-surface-raised: #1f2937;
+
+  --color-border: #1f2937;
+  --color-border-light: #1f2937;
+
+  --color-text: #f9fafb;
+  --color-text-secondary: #9ca3af;
+  --color-text-tertiary: #6b7280;
+  --color-text-inverse: #111827;
+
+  --color-danger: #f87171;
+  --color-danger-light: rgba(239, 68, 68, 0.15);
+  --color-warning: #fbbf24;
+  --color-warning-light: rgba(245, 158, 11, 0.15);
+  --color-success: #34d399;
+  --color-success-light: rgba(16, 185, 129, 0.15);
+  --color-info: #60a5fa;
+  --color-info-light: rgba(59, 130, 246, 0.15);
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.3);
 }
 
-[data-theme="dark"] .rate-limit-card {
-  background: oklch(0.2 0.06 280);
-  color: oklch(0.9 0.02 270);
+/* ─── Theme tokens into Tailwind ──────────────────────────────────────── */
+@theme inline {
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-foreground: var(--color-primary-foreground);
+
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-hover: var(--color-surface-hover);
+  --color-surface-raised: var(--color-surface-raised);
+
+  --color-border: var(--color-border);
+  --color-border-light: var(--color-border-light);
+
+  --color-txt: var(--color-text);
+  --color-txt-secondary: var(--color-text-secondary);
+  --color-txt-tertiary: var(--color-text-tertiary);
+  --color-txt-inverse: var(--color-text-inverse);
+
+  --color-danger: var(--color-danger);
+  --color-danger-light: var(--color-danger-light);
+  --color-warning: var(--color-warning);
+  --color-warning-light: var(--color-warning-light);
+  --color-success: var(--color-success);
+  --color-success-light: var(--color-success-light);
+  --color-info: var(--color-info);
+  --color-info-light: var(--color-info-light);
 }
 
-/* ─── Note card top accent border ─────────────────────────────────────── */
-.note-card-accent {
-  border-top: 3px solid oklch(0.55 0.2 280);
+/* ─── Base Styles ─────────────────────────────────────────────────────── */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-[data-theme="dark"] .note-card-accent {
-  border-top: 3px solid oklch(0.65 0.18 280);
-}
-
-/* ─── Smooth sidebar drawer animation ─────────────────────────────────── */
-.drawer-side {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.drawer-side > .drawer-overlay {
-  transition: opacity 0.3s ease;
-}
-
-/* ─── Prevent layout shift when scrollbar appears/disappears ──────────── */
-html {
-  scrollbar-gutter: stable;
-}
-
-/* ─── Card slide-up animation ─────────────────────────────────────────── */
+/* ─── Animations ──────────────────────────────────────────────────────── */
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .animate-fade-in {
   animation: fade-in 0.2s ease-out both;
 }
 
-/* ─── Smooth transitions for interactive elements ─────────────────────── */
-.card {
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+.animate-slide-in-right {
+  animation: slide-in-right 0.25s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-.btn {
-  transition: all 0.15s ease;
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
-.toggle {
-  transition: background-color 0.2s ease;
+.animate-pulse-dot {
+  animation: pulse-dot 1.5s ease-in-out infinite;
 }
 
-/* ─── Navbar consistent styling ───────────────────────────────────────── */
-.navbar {
-  backdrop-filter: blur(12px);
-  background: oklch(0.97 0.005 260 / 0.85) !important;
-  border-color: oklch(0.9 0.01 260) !important;
+/* ─── Scrollbar ───────────────────────────────────────────────────────── */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
 }
 
-[data-theme="dark"] .navbar {
-  background: oklch(0.2 0.02 260 / 0.85) !important;
-  border-color: oklch(0.3 0.02 260) !important;
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
 }
 
-/* ─── Modal mobile overflow fix ───────────────────────────────────────── */
-.modal-box {
-  max-height: 85dvh;
-  overflow-y: auto;
-  margin: auto;
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-@media (max-width: 640px) {
-  .modal-box {
-    max-height: 80dvh;
-    margin: 1rem;
-    width: calc(100% - 2rem) !important;
-  }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 3px;
 }

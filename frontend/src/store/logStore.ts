@@ -27,14 +27,9 @@ export const useLogStore = create<LogState>()(
       fetchLogs: async () => {
         set({ loading: true }, false, "logs/fetchLogs/pending");
         try {
-          const data = await getLogs();
+          const data = await getLogs(1, 999);
           set(
-            {
-              logs: data.sort((a: Log, b: Log) =>
-                b.timestamp.localeCompare(a.timestamp)
-              ),
-              loading: false,
-            },
+            { logs: data.logs, loading: false },
             false,
             "logs/fetchLogs/fulfilled"
           );
@@ -70,6 +65,6 @@ export const useLogStore = create<LogState>()(
         }
       },
     }),
-    { name: "LogStore" }
+    { name: "LogStore", store: "logs" }
   )
 );

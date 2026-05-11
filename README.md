@@ -1,243 +1,147 @@
 # 📝 Mossnote
 
-A full-stack note-taking application with role-based access control, shareable read-only links, activity logging, and real-time search.
+A full-stack, AI-powered note-taking app with role-based access control, markdown rendering, shareable read-only links, activity logging, and real-time search.
 
-**Live Demo:**
-- Frontend: [https://mossnote.netlify.app](https://mossnote.netlify.app)
-- Backend API: [https://mossnote.onrender.com](https://mossnote.onrender.com)
+🌐 **Live Demo:** [mossnote.netlify.app](https://mossnote.netlify.app)
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Tech Stack
 
-```
-Mossnote/
-├── frontend/          # React + Vite + TypeScript + TailwindCSS + DaisyUI
-└── backend/           # Node.js + Express + TypeScript + MongoDB + JWT
-```
+**Frontend** — React 19 · TypeScript · Vite · Tailwind CSS v4 · Zustand · React Router v7 · Axios · React Hook Form · Marked.js
+
+**Backend** — Node.js · Express 5 · TypeScript · MongoDB + Mongoose · JWT · bcryptjs · Upstash Redis · OpenRouter API (Mistral 7B)
 
 ---
 
 ## 📁 Project Structure
 
 ```
-frontend/src/
-├── api/            # Axios instance with interceptors
-├── components/
-│   ├── auth/       # ProtectedRoute
-│   ├── forms/      # LoginForm, RegisterForm
-│   ├── layout/     # Navbar, RateLimitCard
-│   └── notes/      # NoteCard, NoteModal
-├── pages/          # HomePage, LoginPage, RegisterPage, ActivityLogPage, SharedNotePage
-├── store/          # Zustand stores (authStore, notesStore, uiStore, logStore)
-├── services/       # API service functions
-└── utils/          # formatDate, validation
-
-backend/src/
-├── config/         # db.ts, upstash.ts
-├── controllers/    # authController, notesController, logsController
-├── middleware/     # authMiddleware, authorizeRoles, rateLimiter
-├── models/         # User, Note, Log (Mongoose + TypeScript interfaces)
-└── routes/         # authRoutes, notesRoutes, logsRoutes
+Mossnote/
+├── frontend/
+│   └── src/
+│       ├── api/           # Axios instance with JWT + rate-limit interceptors
+│       ├── components/    # auth/, forms/, layout/, notes/
+│       ├── hooks/         # useDebounce
+│       ├── pages/         # HomePage, Login, Register, ActivityLog, SharedNote, UserManagement
+│       ├── services/      # API service functions (auth, notes, logs, ai, admin)
+│       ├── store/         # Zustand stores (auth, notes, ui, logs, assistant)
+│       └── utils/         # formatDate, validation
+├── backend/
+│   └── src/
+│       ├── config/        # db.ts, upstash.ts
+│       ├── controllers/   # auth, notes, logs, ai, admin
+│       ├── middleware/     # authMiddleware, authorizeRoles, rateLimiter
+│       ├── models/        # User, Note, Log (Mongoose)
+│       └── routes/        # auth, notes, logs, ai, admin
+├── netlify.toml           # Frontend deployment config
+└── render.yaml            # Backend deployment config
 ```
 
-
+---
 
 ## ✨ Features
 
-| Feature | Details |
-|---------|---------|
-| **Authentication** | JWT-based register/login with 7-day token expiry |
-| **Role-Based Access** | `admin` · `editor` · `viewer` enforced at API level |
-| **Notes CRUD** | Create, read, update, delete with ownership tracking |
-| **Ownership Security** | Editors can only modify their own notes; admins have full access |
-| **Activity Log** | Tracks CREATE / EDIT / DELETE / SHARE with timestamp and user |
-| **Search** | Debounced client-side search by title and content |
-| **Shareable Links** | Public read-only URLs via UUID `sharedId` — no login required |
-| **Rate Limiting** | Upstash Redis sliding window (50 req / 60s) with custom UI overlay |
-| **Dark/Light Mode** | Persistent theme toggle with gradient-aware design |
-| **Responsive Design** | Mobile-first with drawer sidebar navigation |
+| Feature               | Details                                                                                              |
+| --------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Authentication**    | JWT-based login with 7-day token expiry                                                              |
+| **Role-Based Access** | `admin` · `editor` enforced at API level                                                             |
+| **Notes CRUD**        | Create, read, update, delete with ownership tracking                                                 |
+| **AI Assistant**      | Summarize, improve writing, rephrase, auto-generate titles, custom prompts (OpenRouter + Mistral 7B) |
+| **Markdown**          | Full rendering with edit/preview toggle                                                              |
+| **Activity Log**      | Tracks CREATE / EDIT / DELETE / SHARE / ROLE_CHANGE                                                  |
+| **Search**            | Debounced client-side search                                                                         |
+| **Shareable Links**   | Public read-only URLs — no login required                                                            |
+| **Rate Limiting**     | Upstash Redis sliding window (50 req / 60s)                                                          |
+| **Dark/Light Mode**   | Persistent theme toggle with smooth transition                                                       |
 
 ---
 
-## 🗄️ Database Schema
+## 🔐 Role Permissions
 
-### User
-```ts
-{
-  name:      string   // required
-  email:     string   // unique, lowercase
-  password:  string   // bcrypt hashed, min 8 chars
-  role:      "admin" | "editor" | "viewer"  // default: viewer
-  createdAt: Date
-  updatedAt: Date
-}
-```
+| Action                  | admin | editor |
+| ----------------------- | ----- | ------ |
+| View notes              | ✅    | ✅     |
+| Create / Edit own notes | ✅    | ✅     |
+| Edit others' notes      | ✅    | ❌     |
+| Delete notes            | ✅    | ✅*    |
+| View activity log       | ✅    | ❌     |
+| Manage users            | ✅    | ❌     |
+| Share notes             | ✅    | ✅     |
+| Use AI Assistant        | ✅    | ✅     |
+| Apply AI changes        | ✅    | ✅     |
 
-### Note
-```ts
-{
-  title:     string         // required
-  content:   string         // required
-  owner:     string         // email of creator (from JWT, never from body)
-  sharedId:  string | null  // UUID for public share links
-  createdAt: Date
-  updatedAt: Date
-}
-```
-
-### Log
-```ts
-{
-  action:    "CREATE" | "EDIT" | "DELETE" | "SHARE"
-  user:      string   // email
-  noteId:    string
-  noteTitle: string?
-  timestamp: string   // ISO string
-}
-```
-
----
-
-## 🔌 API Reference
-
-### Auth
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| POST | `/api/auth/register` | Public | Register a new user |
-| POST | `/api/auth/login` | Public | Login and receive JWT |
-
-### Notes
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| GET | `/api/notes` | Any authenticated | Get all notes |
-| GET | `/api/notes/:id` | Any authenticated | Get note by ID |
-| GET | `/api/notes/shared/:sharedId` | Public | Get shared note (read-only) |
-| POST | `/api/notes` | admin, editor | Create note |
-| PUT | `/api/notes/:id` | admin, editor (own only) | Update note |
-| DELETE | `/api/notes/:id` | admin only | Delete note |
-
-### Logs
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| GET | `/api/logs` | admin only | Get all activity logs |
-| POST | `/api/logs` | Any authenticated | Create a log entry |
-| DELETE | `/api/logs/:id` | admin only | Delete a log entry |
+*Editors can only delete their own notes.
 
 ---
 
 ## 🚀 Local Development
 
 ### Prerequisites
+
 - Node.js 20+
-- MongoDB Atlas account (or local MongoDB)
-- Upstash Redis account
+- MongoDB Atlas (or local)
+- [Upstash Redis](https://upstash.com/) account
+- [OpenRouter](https://openrouter.ai/) API key
 
-### Backend Setup
+### Backend
 
 ```bash
-cd backend
-npm install
+cd backend && npm install
 ```
 
-Create `backend/.env`:
+Create `backend/.env` (see `backend/.env.example`):
+
 ```env
-MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/mossnote
-JWT_SECRET=your_super_secret_key_here
-UPSTASH_REDIS_REST_URL=https://your-upstash-url.upstash.io
-UPSTASH_REDIS_REST_TOKEN=your_upstash_token
-PORT=3000
+MONGO_URI=
+JWT_SECRET=
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+OPENROUTER_API_KEY=
+CORS_ORIGIN=http://localhost:5173
+PORT=5000
 ```
 
 ```bash
-npm run dev     # Start with tsx watch (TypeScript, hot reload)
-npm run build   # Compile to dist/
-npm start       # Run compiled output
+npm run dev    # hot reload with ts-node-dev
+npm run build  # compile TypeScript
+npm start      # run compiled output
 ```
 
-### Frontend Setup
+### Frontend
 
 ```bash
-cd frontend
-npm install
-npm run dev
+cd frontend && npm install
 ```
 
-For local dev, the Vite proxy forwards `/api` → `http://localhost:3000` automatically (no env var needed).
+Create `frontend/.env` (see `frontend/.env.example`):
+
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
+```
+
+```bash
+npm run dev    # Vite dev server on port 5173
+npm run build  # production build
+```
+
+> Vite proxies `/api` → `http://localhost:5000` automatically during development.
 
 ---
 
 ## ☁️ Deployment
 
-### Backend → Render
+| Service     | Platform | Config          |
+| ----------- | -------- | --------------- |
+| **Backend** | Render   | `render.yaml`   |
+| **Frontend**| Netlify  | `netlify.toml`  |
 
-1. Push repo to GitHub
-2. Create a new **Web Service** on [render.com](https://render.com)
-3. Set:
-   - **Root Directory:** `backend`
-   - **Build Command:** `npm install && npm run build`
-   - **Start Command:** `npm start`
-4. Add environment variables in Render dashboard:
-   ```
-   MONGO_URI
-   JWT_SECRET
-   UPSTASH_REDIS_REST_URL
-   UPSTASH_REDIS_REST_TOKEN
-   ```
-5. Copy your Render service URL (e.g. `https://mossnote.onrender.com`)
+**Backend env vars** — same as `.env` above, set in Render dashboard.
 
-> A `render.yaml` blueprint is included at the project root for one-click deploy.
-
-### Frontend → Netlify
-
-1. Connect the GitHub repo on [netlify.com](https://netlify.com)
-2. Netlify auto-detects settings from `netlify.toml`:
-   - **Base directory:** `frontend`
-   - **Build command:** `npm run build`
-   - **Publish directory:** `frontend/dist`
-3. Add environment variable in Netlify dashboard:
-   ```
-   VITE_API_URL = https://mossnote.onrender.com/api
-   ```
-4. Deploy — SPA routing is handled by `netlify.toml` redirects.
-
-> A `netlify.toml` is included at the project root.
+**Frontend env var** — `VITE_API_BASE_URL=https://your-render-url.onrender.com/api`
 
 ---
 
-## 🔐 Role Permissions Matrix
+## 📄 License
 
-| Action | admin | editor | viewer |
-|--------|-------|--------|--------|
-| View notes | ✅ | ✅ | ✅ |
-| Create notes | ✅ | ✅ | ❌ |
-| Edit own notes | ✅ | ✅ | ❌ |
-| Edit others' notes | ✅ | ❌ | ❌ |
-| Delete notes | ✅ | ❌ | ❌ |
-| View activity log | ✅ | ❌ | ❌ |
-| Share notes | ✅ | ✅ | ✅ |
-
----
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **React 19** + **TypeScript** + **Vite**
-- **TailwindCSS v4** + **DaisyUI v5**
-- **Zustand** — state management
-- **React Router v7** — routing
-- **React Hook Form** — form validation
-- **Axios** — HTTP client with interceptors
-- **React Hot Toast** — notifications
-- **Lucide React** — icons
-
-### Backend
-- **Node.js** + **Express 5** + **TypeScript**
-- **MongoDB** + **Mongoose 9**
-- **JWT** — authentication
-- **bcryptjs** — password hashing
-- **Upstash Redis** + **@upstash/ratelimit** — rate limiting
-- **tsx** — TypeScript dev runner
-- **dotenv** — environment config
-
----
+MIT

@@ -6,7 +6,28 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# ── SPA ROUTING ────────────────────────────────────────────────────────────────
 [[redirects]]
   from   = "/*"
   to     = "/index.html"
   status = 200
+
+# ── SECURITY HEADERS ───────────────────────────────────────────────────────────
+[[headers]]
+  for = "/*"
+
+  [headers.values]
+    # Block your app from being embedded in iframes (clickjacking)
+    X-Frame-Options = "DENY"
+
+    # Prevent MIME-type sniffing attacks
+    X-Content-Type-Options = "nosniff"
+
+    # Limit referrer data sent on navigation
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Lock down sensitive browser APIs
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+
+    # Content Security Policy — tighten after confirming all sources
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://mossnote.onrender.com;"
