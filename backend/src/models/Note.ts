@@ -5,7 +5,7 @@ export interface INote extends Document {
   title: string;
   content: string;
   owner: string;
-  sharedId: string | null;
+  sharedId?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,7 +21,13 @@ const noteSchema = new Schema<INote>(
 );
 
 noteSchema.index({ owner: 1, createdAt: -1 });
-noteSchema.index({ sharedId: 1 }, { unique: true, sparse: true });
+noteSchema.index(
+  { sharedId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { sharedId: { $type: "string" } },
+  }
+);
 
 const Note = mongoose.model<INote>("Note", noteSchema);
 export default Note;

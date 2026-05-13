@@ -40,7 +40,7 @@ export const Sidebar = () => {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex h-screen w-60 shrink-0 transform flex-col border-r border-border bg-surface transition-transform duration-200 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 flex h-screen h-[100svh] w-60 shrink-0 transform flex-col border-r border-border bg-surface transition-transform duration-200 lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -109,7 +109,7 @@ export const Sidebar = () => {
         </nav>
 
         {/* Bottom section */}
-        <div className="border-t border-border px-3 py-3 space-y-1">
+        <div className="space-y-1 border-t border-border px-3 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-3 lg:pb-3">
           {/* Dark / Light mode toggle — ON = light mode, OFF = dark mode */}
           <div className="flex items-center justify-between px-3 py-2">
             <span className="text-sm font-medium text-txt-secondary">

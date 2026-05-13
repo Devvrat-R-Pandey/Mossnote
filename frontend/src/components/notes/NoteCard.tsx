@@ -135,7 +135,7 @@ export const NoteCard = memo(({ note }: { note: NormalizedNote }) => {
   return (
     <>
       {/* ── Card ──────────────────────────────────────────────────────── */}
-      <div className="group rounded-xl border border-border bg-surface shadow-sm hover:shadow-md transition-all duration-200 animate-fade-in h-[230px] overflow-hidden flex flex-col">
+      <div className="group rounded-xl border border-border bg-surface shadow-sm hover:shadow-md transition-all duration-200 animate-fade-in h-[210px] overflow-hidden flex flex-col">
         {/* Accent top bar */}
         <div className="h-0.5 bg-primary/60 rounded-t-xl" />
 
